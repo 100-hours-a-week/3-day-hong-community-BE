@@ -11,7 +11,15 @@ public class ApiResponse<T> {
 
     private String message;
 
+    private authErrorCode errorCode;
+
     @JsonInclude(JsonInclude.Include.ALWAYS)
     private T data;
 
+
+    public ApiResponse(String message, T data){
+        this.message = message;
+        this.data = data;
+        this.errorCode = null;
+    }
 }
