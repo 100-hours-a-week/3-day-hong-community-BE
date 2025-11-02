@@ -1,9 +1,12 @@
 package com.demo.community.posts.service;
 
+import com.demo.community.common.dto.ApiResponse;
+import com.demo.community.likes.domain.repository.LikesPostsRepository;
 import com.demo.community.posts.domain.entity.*;
 import com.demo.community.posts.domain.repository.PostRepository;
 import com.demo.community.posts.domain.repository.PostViewCountsRepository;
 import com.demo.community.posts.domain.repository.PostsCountsRepository;
+import com.demo.community.posts.domain.repository.PostsImageRepository;
 import com.demo.community.posts.dto.PostRequestDTO;
 import com.demo.community.posts.dto.PostResponseDTO;
 import com.demo.community.users.domain.enitty.QUsers;
@@ -13,7 +16,10 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,10 +38,17 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostsCountsRepository postsCountsRepository;
     private final PostViewCountsRepository postViewCountsRepository;
+    private final PostsImageRepository postsImageRepository;
+    private final LikesPostsRepository likesPostsRepository;
     private final JPAQueryFactory jpaQueryFactory;
 
     @Transactional
-    public PostResponseDTO.PostCreateResponse createPost(PostRequestDTO.PostCreateRequest request, Long userId) {
+    public PostResponseDTO.PostCreateResponse createPost(PostRequestDTO.PostCreateRequest request, HttpServletRequest req) {
+
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
+
         Users user = userRepository.findById(userId)
                 // 이 예외는 나중에 커스텀 에외 (실패코드, 메세지를 응답으로 반환하는)로 변경 예정
                 .orElseThrow(() -> new EntityNotFoundException("user not found"));
@@ -60,24 +73,32 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(Long postId, Long userId){
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
+    public void deletePost(Long postId, HttpServletRequest req){
 
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("post not found"));
 
-        // 여기서 lazy 로딩 될듯?
+        // 인가
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
         if (!post.getUser().getId().equals(userId)){
-            // 이 예외도 나중에 실패코드를 응답하는 커스텀 예외로 변경해야함.
             throw new EntityNotFoundException("delete forbidden user");
         }
 
+        postViewCountsRepository.deleteById(postId);
+        postsCountsRepository.deleteById(postId);
+        postsImageRepository.deleteByPostId(postId);
         postRepository.delete(post);
     }
 
     @Transactional
-    public PostResponseDTO.PostDetailResponse detailPost(Long postId, Long userId){
+    public PostResponseDTO.PostDetailResponse detailPost(Long postId, HttpServletRequest req){
+
+//        HttpSession session = req.getSession(false);
+//        Long userId = -1L;
+//        if (session != null) {userId = (Long) session.getAttribute("USER_ID");}
+        Long userId = (Long) req.getAttribute("userId");
 
         QPosts p = QPosts.posts;
         QUsers u = QUsers.users;
@@ -127,6 +148,8 @@ public class PostService {
 
         Tuple t = rows.getFirst();
 
+        boolean likepressed = likesPostsRepository.existsByUsersIdAndPostsId(userId, postId);
+
         // 이 값이 null 일 때 (존재하지 않는 postId일 때) 오류 반환하는 코드 필요함.
         return PostResponseDTO.PostDetailResponse.builder()
                 .postId(t.get(p.id))
@@ -138,20 +161,21 @@ public class PostService {
                         .like(t.get(pc.likeCounts))
                         .reply(t.get(pc.replyCounts))
                         .visit(t.get(pv.viewCounts)).build())
-                .likePressed(false)
+                .likePressed(likepressed)
                 .authorization(Objects.equals(t.get(u.id), userId))
                 .images(imageUrls)
                 .build();
     }
 
     @Transactional
-    public PostResponseDTO.PostUpdateResponse updatePost(PostRequestDTO.PostUpdateRequest request, Long postId, Long userId) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
-
+    public PostResponseDTO.PostUpdateResponse updatePost(PostRequestDTO.PostUpdateRequest request, Long postId, HttpServletRequest req) {
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("post not found"));
 
+        // 인가
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
         if (!post.getUser().getId().equals(userId)){
             throw new EntityNotFoundException("delete forbidden user");
         }
