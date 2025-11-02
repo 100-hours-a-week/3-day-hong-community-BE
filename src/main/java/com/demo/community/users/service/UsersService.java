@@ -144,8 +144,9 @@ public class UsersService {
             Long curUser
     ){
         // 인가
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
         if (!Objects.equals(userId, curUser)) {
             throw new EntityNotFoundException("forbidden user");
         }
@@ -168,8 +169,9 @@ public class UsersService {
         Long curUser
     ){
         // 인가
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
         if (!Objects.equals(userId, curUser)) {
             throw new EntityNotFoundException("forbidden user (not a writer)");
         }
@@ -193,8 +195,9 @@ public class UsersService {
     @Transactional
     public void deleteUser(Long userId, HttpServletRequest req){
         // 인가
-        HttpSession session = req.getSession(false);
-        Long curUser = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long curUser = (Long) session.getAttribute("USER_ID");
+        Long curUser = (Long) req.getAttribute("userId");
         if (!Objects.equals(userId, curUser)){
             // 이 예외도 나중에 실패코드를 응답하는 커스텀 예외로 변경해야함.
             throw new EntityNotFoundException("delete forbidden user");

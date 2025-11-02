@@ -45,8 +45,9 @@ public class PostService {
     @Transactional
     public PostResponseDTO.PostCreateResponse createPost(PostRequestDTO.PostCreateRequest request, HttpServletRequest req) {
 
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
 
         Users user = userRepository.findById(userId)
                 // 이 예외는 나중에 커스텀 에외 (실패코드, 메세지를 응답으로 반환하는)로 변경 예정
@@ -78,8 +79,9 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("post not found"));
 
         // 인가
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
         if (!post.getUser().getId().equals(userId)){
             throw new EntityNotFoundException("delete forbidden user");
         }
@@ -93,9 +95,10 @@ public class PostService {
     @Transactional
     public PostResponseDTO.PostDetailResponse detailPost(Long postId, HttpServletRequest req){
 
-        HttpSession session = req.getSession(false);
-        Long userId = -1L;
-        if (session != null) {userId = (Long) session.getAttribute("USER_ID");}
+//        HttpSession session = req.getSession(false);
+//        Long userId = -1L;
+//        if (session != null) {userId = (Long) session.getAttribute("USER_ID");}
+        Long userId = (Long) req.getAttribute("userId");
 
         QPosts p = QPosts.posts;
         QUsers u = QUsers.users;
@@ -170,8 +173,9 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("post not found"));
 
         // 인가
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
         if (!post.getUser().getId().equals(userId)){
             throw new EntityNotFoundException("delete forbidden user");
         }

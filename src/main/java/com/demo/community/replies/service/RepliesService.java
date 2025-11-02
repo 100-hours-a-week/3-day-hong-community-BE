@@ -59,8 +59,9 @@ public class RepliesService {
     @Transactional
     public RepliesResponseDTO.ReplyDetailResponse createReply(HttpServletRequest req, RepliesRequestDTO.ReplyCreateRequest request){
 
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
 
         Optional<Users> user = userRepository.findById(userId);
         if(user.isEmpty()){throw new EntityNotFoundException("user not found");}
@@ -93,8 +94,9 @@ public class RepliesService {
         Replies gotReply = reply.get();
 
         // 인가
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
         if (!Objects.equals(userId, gotReply.getUsers().getId())){
             throw new AccessDeniedException("forbidden user (not a writer)");
         }
@@ -119,8 +121,9 @@ public class RepliesService {
         if(reply.isEmpty()){throw new EntityNotFoundException("post not found");}
 
         // 인가
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
         if (!reply.get().getUsers().getId().equals(userId)){
             throw new EntityNotFoundException("delete forbidden user");
         }

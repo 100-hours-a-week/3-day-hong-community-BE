@@ -31,8 +31,9 @@ public class LikesPostsService {
     @Transactional
     public LikesPostsResponseDTO.LikesPostsResultResponse likeCreate(Long postId, HttpServletRequest req){
 
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
 
         boolean nowPressed = likesPostsRepository.existsByUsersIdAndPostsId(userId, postId);
         if (nowPressed){
@@ -60,8 +61,9 @@ public class LikesPostsService {
     @Transactional
     public LikesPostsResponseDTO.LikesPostsResultResponse likeDelete(Long postId, HttpServletRequest req){
 
-        HttpSession session = req.getSession(false);
-        Long userId = (Long) session.getAttribute("USER_ID");
+//        HttpSession session = req.getSession(false);
+//        Long userId = (Long) session.getAttribute("USER_ID");
+        Long userId = (Long) req.getAttribute("userId");
 
         boolean nowPressed = likesPostsRepository.existsByUsersIdAndPostsId(userId, postId);
         if (!nowPressed){
